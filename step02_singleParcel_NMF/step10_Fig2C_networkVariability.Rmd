@@ -1,0 +1,72 @@
+---
+title: "Fig2C"
+author: "zhaoshaoling"
+date: "2023-09-19"
+output: html_document
+---
+
+```{r}
+rm(list = ls())
+
+library(R.matlab)
+library(ggplot2);
+
+Variability_Mat = readMat('/Users/zhaoshaoling/Documents/ABCD_indivTopography/step01_NMFtopography/network_variability/variability_visualize/VariabilityLoading_Median_17SystemMean.mat');
+
+AtlasLabel_Mat = readMat('/Users/zhaoshaoling/Documents/ABCD_indivTopography/step01_NMFtopography/network_variability/variability_visualize/Group_AtlasLabel.mat');
+
+AllData = data.frame(Variability = matrix(0, 59412, 1));
+AllData$Label = matrix(0, 59412, 1);
+for (i in c(1:59412))
+{
+  AllData$Variability[i] = Variability_Mat$VariabilityLoading.Median.17SystemMean.NoMedialWall[i];
+  AllData$Label[i] = AtlasLabel_Mat$sbj.AtlasLabel.NoMedialWall[i];
+}
+AllData$Variability = as.numeric(AllData$Variability);
+AllData$Label = as.factor(AllData$Label);
+
+# Order the network by the median value
+MedianValue = matrix(0, 1, 17);
+for (i in c(1:17)) {
+  ind = which(AllData$Label == i);
+  MedianValue[i] = median(AllData$Variability[ind]);
+}
+## Store network variability for correlation with effect size
+#writeMat(paste0('/Users/zhaoshaoling/Documents/ABCD_indivTopography/step01_NMFtopography/variability_visualize/NetworkVariability.mat'), MedianValue = MedianValue);
+tmp = sort(MedianValue, index.return = TRUE);
+
+#ColorScheme = c("#FF9F3D", "#7A5CB7", "#9208AF", "#DE0045", "#00A64A","#DE0045",
+ #                        "#00A64A", "#DE0045", "#9208AF", "#40AFF0", "#1F60B8",
+  #                 "#F2E58C", "#E663FF", "#FF9F3D", "#40AFF0", "#40AFF0", "#00A64A");
+ColorScheme = c("#FF9F3D", "#7A5CB7", "#AF33AD", "#E76178", "#00A64A","#E76178",
+                         "#00A64A", "#E76178", "#AF33AD", "#7499C2", "#e47f22",
+                   "#F2E58C", "#E663FF", "#FF9F3D", "#7488C2", "#7499C2", "#00A64A");
+
+data <- data.frame(x = matrix(0, 17, 1));
+
+data$x_New <- as.matrix(c(1:17));
+data$Variability<-as.matrix(t(MedianValue))
+data$color<-ColorScheme
+data=data[order(data$Variability),]
+```
+
+```{r}
+Fig <- ggplot(AllData, aes(x = Label, y = Variability, fill = Label, color = Label)) + 
+      geom_violin(trim = FALSE) +
+      scale_color_manual(values = ColorScheme) + 
+      scale_fill_manual(values = ColorScheme) + 
+      labs(x = "Networks", y = "Across-subject Variability") + theme_classic() +
+      theme(axis.text.x = element_text(size = 22, color = data$color),
+            axis.text.y = element_text(size = 22, color = "black"),
+            axis.title = element_text(size = 22)) +
+      theme(axis.text.x = element_text(angle = 22, hjust = 1)) + 
+      theme(legend.position = "none") +
+      scale_x_discrete(limits = factor(c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,13, 14, 15, 16, 17),labels = data$x_New)) + 
+      geom_boxplot(width=0.1, fill = "white");
+
+Fig
+
+#ggsave('/Users/zhaoshaoling/Documents/ABCD_indivTopography/FiguresPlot/Figure_materials/2c_networkMeanVariability/Fig2C_variabilityLoading_MedianViolin_new.pdf', width = 20, height = 15, dpi = 600, units = "cm")
+
+```
+
