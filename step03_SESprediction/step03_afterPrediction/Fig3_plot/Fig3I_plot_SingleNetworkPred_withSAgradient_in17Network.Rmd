@@ -1,0 +1,43 @@
+---
+title: "Untitled"
+author: "zhaoshaoling"
+date: "2023-05-17"
+output: html_document
+---
+
+```{r}
+rm(list = ls())
+
+library(ggplot2)
+library(R.matlab)
+
+
+Weight_Overall<-read.csv("/Users/zhaoshaoling/Documents/ABCD_indivTopography/step02_SESprediction/gradient/network17_singleNetworkPred_SAgradient_n3198.csv",header = F)
+
+colnames(Weight_Overall)<-c('Gradient','Number')
+
+Weight_Overall$Network<-c("FP1", "AU1", "VS1", "DM1", "DA1", "DM2", 
+                          "DA2", "DM3", "VS2", "SM1", "TM", 
+                          "LB", "VA1", "FP2", "SM2", "SM3", "DA3")
+
+#cyl <- c("#FF9F3D", "#7A5CB7", "#AF33AD", "#E76178", "#00A64A","#E76178",
+ #                        "#00A64A", "#E76178", "#AF33AD", "#7499C2", "#e47f22",
+  #                 "#F2E58C", "#E663FF", "#FF9F3D", "#7488C2", "#7499C2", "#00A64A");
+derivative.colorbar <- c("#100000", "#3b0000", "#5b0000", "#880000", "#bc0000", "#ec0000", "#ff4600", "#ff9600", "#ffd200", "#fffa00")
+
+SArank <- Weight_Overall$Gradient
+
+                
+fig1 <- ggplot(data=Weight_Overall, aes(y=Number, x=Gradient,size=8))+ 
+  geom_smooth(data=Weight_Overall, aes(y=Number, x=Gradient),method = lm,size=2,color='black') +  
+  geom_jitter(aes(y=Number, x=Gradient, color=SArank, size=1.5)) + 
+  scale_color_gradientn(colours = derivative.colorbar) + theme_classic() + ylab("Sum of Weights") + 
+  theme(axis.title.x = element_text(size = 20))+ xlab("Sensory-to-Association Gradient") + theme(axis.title.y = element_text(size = 20))+
+  theme(axis.text.x = element_text(size= 20,color='black'),axis.text.y = element_text(size= 20,color='black'))+
+  ggrepel::geom_text_repel(data=Weight_Overall,mapping = aes(label=Network),size=4)
+
+fig1
+
+ggsave('/Users/zhaoshaoling/Documents/ABCD_indivTopography/FiguresPlot/zaixu/Figs/singleNetwork_PredACC_SAgradient_n3198_new1101.pdf', width = 19, height = 15, dpi = 600, units = "cm",device = "pdf")
+
+```

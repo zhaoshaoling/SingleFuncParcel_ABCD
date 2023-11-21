@@ -1,0 +1,51 @@
+---
+title: "Fig3E_SingleNetworkmedianPerformance"
+author: "zhaoshaoling"
+date: "2023-09-24"
+output: html_document
+---
+
+```{r}
+rm(list = ls())
+
+library(R.matlab)
+library('ggplot2');
+library(tidyverse)
+library(mgcv)
+
+featureWeight_vector <- matrix(0, 1, 17);
+featureWeight_vector<- readMat('/Users/zhaoshaoling/Documents/ABCD_indivTopography/step02_SESprediction/PLS_prediction/covariatesControlled/zaixu/PLS_prediction/atlasLoading/PLSr1/AtlasLoading/Corr_median_total.mat')
+data <- data.frame(Effects_w = as.numeric(featureWeight_vector$Corr.median.total));
+
+data$EffectRank <- rank(data$Effects_w);
+data$newtork<- matrix(c(1:17))
+
+# Using 7 colors scheme for bar plot
+data$color = c("#FF9F3D", "#7A5CB7", "#AF33AD", "#E76178", "#00A64A","#E76178",
+                         "#00A64A", "#E76178", "#AF33AD", "#7499C2", "#e47f22",
+                   "#F2E58C", "#E663FF", "#FF9F3D", "#7488C2", "#7499C2", "#00A64A");
+
+data2=data[order(data$EffectRank),]
+
+BorderColor2<-data2$color
+
+LineType <- c( "solid", "solid", "solid", "solid", "solid", "solid", "solid", 
+               "solid", "solid", "solid", "solid", "solid", "solid", "solid",
+               "solid", "solid", "solid");
+
+Fig <- ggplot(data2, aes(EffectRank, Effects_w-0.05)) +
+       geom_bar(stat = "identity", fill=BorderColor2, 
+            colour = BorderColor2, linetype = LineType, width = 0.8) +
+       labs(x = "Networks", y = expression(paste("Single Network Prediction"))) + theme_classic() + 
+       theme(axis.text.x = element_text(size = 20, color = BorderColor2),
+            axis.text.y = element_text(size = 20, color = "black"), 
+            axis.title=element_text(size = 20)) + 
+       theme(axis.text.x = element_text(angle = 45, hjust = 1)) + scale_y_continuous(breaks = c(0, 0.05, 0.1, 0.15), labels = c('0.05','0.1','0.15','0.20')) +
+       scale_x_discrete(limits = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17), labels = c("16", "9", "12", "10", "15", "2", "1", "3", "14", "6", "11", "7", "5", "8", "17", "13", "4")) ;
+
+Fig
+
+ggsave('/Users/zhaoshaoling/Documents/ABCD_indivTopography/FiguresPlot/zaixu/Figs/singleNetwork_PredACC_total_new.pdf', width = 17, height = 15, dpi = 600, units = "cm")
+```
+```
+

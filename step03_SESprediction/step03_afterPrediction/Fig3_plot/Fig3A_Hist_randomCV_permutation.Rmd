@@ -1,0 +1,89 @@
+
+
+```{r}
+rm(list = ls())
+library(R.matlab)
+library(ggplot2)
+
+PredictionFolder = '/Users/zhaoshaoling/Documents/ABCD_indivTopography/step02_SESprediction/PLS_prediction/covariatesControlled/zaixu/PLS_prediction/atlasLabel/NMF_Label';
+dataMat = readMat(paste0(PredictionFolder, '/2Fold_RandomCV_Corr_MAE_Actual_OverallSES_total.mat'));
+
+resultsFolder = '/Users/zhaoshaoling/Documents/ABCD_indivTopography/FiguresPlot/zaixu/Figs/NMFLabel';
+
+# Actual corr
+Corr_Actual = as.vector(dataMat$Corr.OverallSES.Actual);
+ActualData = data.frame(Corr = Corr_Actual);
+
+Fig <- ggplot(ActualData) +
+    geom_histogram(aes(x = Corr), bins = 30, color = "#000000", fill = "#000000") +
+    theme_classic() + labs(x = expression(paste("Prediction Accuracy (", italic("r"), ")")), y = "") +
+    theme(axis.text=element_text(size=30, color='black'), aspect.ratio = 1) +
+    theme(axis.title=element_text(size = 30)) + 
+    theme(axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    scale_y_continuous(expand = c(0, 0)) +
+    #scale_x_continuous(limits = c(0.24, 0.28), breaks = c(0.24, 0.26, 0.28), labels = c('0.24','0.26','0.28')) #PLS loading
+    scale_x_continuous(limits = c(0.18, 0.26), breaks = c(0.18, 0.22, 0.26), labels = c('0.18','0.22','0.26')) 
+Fig
+
+ggsave(paste0(resultsFolder, '/ActualCorr_101CV.pdf'), width = 17, height = 15, dpi = 600, units = "cm")
+
+```
+
+```{r}
+# Permutation corr
+Corr_Perm = as.vector(dataMat$Corr.OverallSES.Perm);
+PermData = data.frame(Corr_Perm);
+
+Fig <- ggplot(PermData) + 
+    geom_histogram(aes(x = Corr_Perm), bins = 30, color = "#999999", fill = "#999999") +
+    theme_classic() + labs(x = expression(paste("Permutation Accuracy (", italic("r"), ")")), y = "")  +
+    theme(axis.text=element_text(size=30, color='black'), aspect.ratio = 1) + theme(axis.title=element_text(size = 30)) + 
+    theme(axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    scale_y_continuous(expand = c(0, 0)) +
+    #scale_x_continuous(limits = c(-0.13, 0.13), breaks = c(-0.13, 0, 0.13), labels = c('-0.13','0','0.13'))
+    scale_x_continuous(limits = c(-0.1, 0.25), breaks = c(-0.1, 0, 0.09, 0.25), labels = c('-0.1','0','0.09','0.25'))
+Fig
+
+ggsave(paste0(resultsFolder, '/PermCorr_n1000.pdf'), width = 17, height = 15, dpi = 600, units = "cm")
+
+```
+
+
+```{r}
+# Permutation test accuracy fold 0
+Corr_Perm = as.vector(dataMat$Fold.0.Corr);
+PermData = data.frame(Corr_Perm);
+
+Fig <- ggplot(PermData) + 
+    geom_histogram(aes(x = Corr_Perm), bins = 30, color = "#999999", fill = "#999999") +
+    theme_classic() + labs(x = expression(paste("Permutation Accuracy (", italic("r"), ")")), y = "")  +
+    theme(axis.text=element_text(size=30, color='black'), aspect.ratio = 1) + theme(axis.title=element_text(size = 30)) + 
+    theme(axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    scale_y_continuous(expand = c(0, 0)) +
+    #scale_x_continuous(limits = c(-0.17, 0.28), breaks = c(-0.17, 0, 0.17, 0.28), labels = c('-0.17','0','0.17','0.28'))
+  scale_x_continuous(limits = c(-0.16, 0.26), breaks = c(-0.16, 0, 0.15, 0.26), labels = c('-0.16','0','0.15','0.26'))
+
+Fig
+
+ggsave(paste0(resultsFolder, '/PermCorr_fold0.pdf'), width = 17, height = 15, dpi = 600, units = "cm")
+
+```
+
+```{r}
+# Permutation test accuracy fold 1
+Corr_Perm = as.vector(dataMat$Fold.1.Corr);
+PermData = data.frame(Corr_Perm);
+
+Fig <- ggplot(PermData) + 
+    geom_histogram(aes(x = Corr_Perm), bins = 30, color = "#999999", fill = "#999999") +
+    theme_classic() + labs(x = expression(paste("Permutation Accuracy (", italic("r"), ")")), y = "")  +
+    theme(axis.text=element_text(size=30, color='black'), aspect.ratio = 1) + theme(axis.title=element_text(size = 30)) + 
+    theme(axis.line.y = element_blank(), axis.text.y = element_blank(), axis.ticks.y = element_blank()) +
+    scale_y_continuous(expand = c(0, 0)) +
+    #scale_x_continuous(limits = c(-0.17, 0.25), breaks = c(-0.17, 0, 0.17, 0.25), labels = c('-0.17','0','0.17','0.25'))
+    scale_x_continuous(limits = c(-0.16, 0.25), breaks = c(-0.16, 0, 0.15, 0.25), labels = c('-0.16','0','0.15','0.25'))
+Fig
+
+ggsave(paste0(resultsFolder, '/PermCorr_fold1.pdf'), width = 17, height = 15, dpi = 600, units = "cm")
+
+```

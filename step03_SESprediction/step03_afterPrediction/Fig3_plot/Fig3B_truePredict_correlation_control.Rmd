@@ -1,0 +1,117 @@
+---
+title: "fig3B_truePredict_corr"
+author: "zhaoshaoling"
+date: "2023-09-22"
+output: html_document
+---
+
+```{r}
+rm(list = ls())
+
+library(R.matlab)
+library(ggplot2)
+library(visreg)
+
+### PLS loading
+PredictionFolder = '/Users/zhaoshaoling/Documents/ABCD_indivTopography/step02_SESprediction/PLS_prediction/covariatesControlled/zaixu/PLS_prediction/atlasLoading/PLSr1/AtlasLoading';
+Prediction_Res = readMat(paste0(PredictionFolder, '/2Fold_RandomCV_Corr_MAE_Actual_OverallSES.mat'));
+
+
+Corr_Actual = Prediction_Res$Corr.OverallSES.Actual;
+
+# Find median value
+MedianIndex = 20;# PLS Loading
+
+MedianFolder = paste0(PredictionFolder, '/SES_All_RegressCovariates_RandomCV/Time_', 
+		    as.character(MedianIndex-1));
+#MedianFolder = paste0(PredictionFolder, '/Time_', 
+#		    as.character(MedianIndex-1));
+Fold0 <- readMat(paste0(MedianFolder, '/Fold_0_Score.mat'));
+TestScore_Fold0 <- t(Fold0$Test.Score);
+PredictScore_Fold0 <- as.numeric(t(Fold0$Predict.Score));
+Index_Fold0 <- Fold0$Index + 1;
+Fold1 <- readMat(paste0(MedianFolder, '/Fold_1_Score.mat'));
+TestScore_Fold1 <- t(Fold1$Test.Score);
+PredictScore_Fold1 <- as.numeric(t(Fold1$Predict.Score));
+Index_Fold1 <- Fold1$Index + 1;
+
+Predict_Max <- max(c(PredictScore_Fold0, PredictScore_Fold1));
+Predict_Min <- min(c(PredictScore_Fold0, PredictScore_Fold1));
+Test_Max <- max(c(TestScore_Fold0, TestScore_Fold1));
+Test_Min <- min(c(TestScore_Fold0, TestScore_Fold1));
+
+Color_Fold1 = '#7F7F7F';
+Color_Fold0 = '#666666';
+
+
+```
+
+```{r}
+# Fold 1
+#cv1_behv<-cv1_behv[-which(cv1_behv$adjIncome>mean(cv1_behv$adjIncome)+3*sd(cv1_behv$adjIncome)),]
+predicts_Fold1 = data.frame(TestScore_Fold1 = as.numeric(TestScore_Fold1));
+predicts_Fold1$PredictScore_Fold1 = as.numeric(PredictScore_Fold1);
+lm_Fold1 <- lm(PredictScore_Fold1 ~ TestScore_Fold1, data = predicts_Fold1);
+plotdata <- visreg(lm_Fold1, "TestScore_Fold1", type = "conditional", scale = "linear", plot = FALSE);
+
+smooth_mean = mean(plotdata$fit$visregFit)
+
+smooths_Fold1 <- data.frame(Variable = plotdata$meta$x,
+                      x = plotdata$fit[[plotdata$meta$x]],
+                      smooth = plotdata$fit$visregFit,
+                      lower = plotdata$fit$visregLwr,
+                      upper = plotdata$fit$visregUpr,
+                      smooth_dem = scale(plotdata$fit$visregFit, center=T, scale=F),
+                      lower_dem = plotdata$fit$visregLwr-smooth_mean,
+                      upper_dem = plotdata$fit$visregUpr-smooth_mean);
+
+predicts_Fold1 <- data.frame(Variable = "dim1",
+                      x = plotdata$res$TestScore_Fold1,
+                      y = plotdata$res$visregRes,
+                      y_dem = scale(plotdata$res$visregRes, center=T, scale=F))
+
+Fig <- ggplot() +
+       geom_jitter(data = predicts_Fold1, aes(x, y_dem), width = 0.2, colour = Color_Fold1, alpha=0.5, size = 2) + geom_line(data = smooths_Fold1, aes(x = x, y = smooth_dem), colour = Color_Fold1, size = 1.5) +
+       geom_ribbon(data = smooths_Fold1, aes(x = x, ymin = lower_dem, ymax = upper_dem), fill = Color_Fold1, alpha = 0.2)+ theme_classic() + labs(x="True INR ", y = "Predicted INR") + 
+  theme(axis.text=element_text(size=20, color='black'), axis.title=element_text(size=20)) +
+  scale_x_continuous(limits = c(0, 10), breaks = c(0,3,6,9))
+
+Fig
+```
+
+
+```{r}
+# Fold 0
+predicts_Fold0 = data.frame(TestScore_Fold0 = as.numeric(TestScore_Fold0));
+predicts_Fold0$PredictScore_Fold0 = as.numeric(PredictScore_Fold0);
+Energy_lm <- lm(PredictScore_Fold0 ~ TestScore_Fold0, data = predicts_Fold0);
+plotdata0 <- visreg(Energy_lm, "TestScore_Fold0", type = "conditional", scale = "linear", plot = FALSE);
+
+smooth_mean0=mean(plotdata0$fit$visregFit)
+
+smooths <- data.frame(Variable = plotdata$meta$x,
+                      x = plotdata$fit[[plotdata$meta$x]],
+                      smooth = plotdata$fit$visregFit,
+                      lower = plotdata$fit$visregLwr,
+                      upper = plotdata$fit$visregUpr,
+                      smooth_dem0 = scale(plotdata0$fit$visregFit, center=T, scale=F),
+                      lower_dem0 = plotdata0$fit$visregLwr-smooth_mean0,
+                      upper_dem0 = plotdata0$fit$visregUpr-smooth_mean0);
+
+predicts <- data.frame(Variable = "dim1",
+                      x = plotdata0$res$TestScore_Fold0,
+                      y = plotdata0$res$visregRes,
+                      y_dem0 = scale(plotdata0$res$visregRes, center=T, scale=F))
+
+Fig1 <- Fig +
+       geom_jitter(data = predicts, aes(x, y_dem0), width = 0.2, colour = Color_Fold0, size = 2, shape = 17, alpha=0.5,) + geom_line(data = smooths, aes(x = x, y = smooth_dem0), colour = Color_Fold0, size = 1.5) + geom_ribbon(data = smooths, aes(x = x, ymin = lower_dem0, ymax = upper_dem0), fill = Color_Fold0, alpha = 0.2) + theme_classic() + labs(x="True INR ", y = "Predicted INR (zero-centered)") +  theme(axis.text=element_text(size=20, color='black'), axis.title=element_text(size=20)) +
+  scale_x_continuous(limits = c(0, 10), breaks = c(0,3,6,9))
+
+Fig1
+
+resultsFigName = paste0('/Users/zhaoshaoling/Documents/ABCD_indivTopography/FiguresPlot/zaixu/Figs/PLSloading_OverallSES_CorrACC_Time',  as.character(MedianIndex-1), '.pdf')
+ggsave(resultsFigName,Fig1, width = 16, height = 15, dpi = 600, units = "cm")
+
+```
+
+
